@@ -23,6 +23,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
         $errors[] = 'パスワードが未入力です';
     }
 
+    // 重複チェック
+    $sql = 'select * from users where name = :name';
+    $dbh = connectDatabase();
+    $stmt = $dbh->prepare($sql);
+    $stmt->bindParam(':name', $name);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // レコードが存在する => $row の中身は配列で入っているはず
+    // レコードが存在しない => $row の中身はfalseで入っている
+
+    if ($row)
+    {
+        $errors[] = 'すでにそのユーザネームは使われています';
+    }
+
     // バリデーション突破時
     if (empty($errors))
     {
@@ -71,8 +87,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
 
     <form action="" method="post">
-        ユーザネーム: <input type="text" name="name"><br>
-        パスワード: <input type="text" name="password"><br>
+        ユーザネーム:
+        <input type="text" name="name" value="<?php echo $name; ?>">
+        <br>
+        パスワード:
+        <input type="text" name="password" value="<?php echo $password ?>">
+        <br>
         <input type="submit" value="新規登録">
     </form>
     <a href="login.php">ログインはこちら</a>
